@@ -121,16 +121,18 @@ def index_file(file, index_name):
         doc['_index'] = index_name
         doc['_id'] = ''.join(doc['productId'])
         docs.append(doc)
+        bulk(client,docs)
+        break
 
-    print(len(docs))
-    for i in range(0,len(docs),2000):
-        if len(docs)-i > 2000:
-            print(str(i)+ ' start ' + str(i+1999))
-            bulk(client,docs[i:(i+1999)])
-        elif len(docs)-i < 2000:
-            print(str(i)+ ' start ' + str(len(docs)-1))
-            bulk(client,docs[i:(len(docs)-1)])
-        print(client.cat.count(index_name, params={"v": "true"}))
+    # print(len(docs))
+    # for i in range(0,len(docs),2000):
+    #     if len(docs)-i > 2000:
+    #         print(str(i)+ ' start ' + str(i+1999))
+    #         bulk(client,docs[i:(i+1999)])
+    #     elif len(docs)-i < 2000:
+    #         print(str(i)+ ' start ' + str(len(docs)-1))
+    #         bulk(client,docs[i:(len(docs)-1)])
+    #     print(client.cat.count(index_name, params={"v": "true"}))
     #print(docs)
     return docs_indexed
 
