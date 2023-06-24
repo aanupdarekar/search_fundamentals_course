@@ -140,10 +140,10 @@ query = {
     }
 }
 
-client.search(
+json.dumps(client.search(
     body=query,
     index=index_name
-)
+),indent=1)
 
 # try a phrase query
 q = 'fox dog'

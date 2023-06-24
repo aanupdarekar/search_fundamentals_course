@@ -2,6 +2,7 @@
 import opensearchpy
 import requests
 from lxml import etree
+import json
 
 import click
 import glob
@@ -85,7 +86,15 @@ def get_opensearch():
     port = 9200
     auth = ('admin', 'admin')
     #### Step 2.a: Create a connection to OpenSearch
-    client = None
+    client = OpenSearch(
+        hosts=[{'host': host, 'port': port}],
+        http_compress=True,  # enables gzip compression for request bodies
+        http_auth=auth,
+        use_ssl=True,
+        verify_certs=False,
+        ssl_assert_hostname=False,
+        ssl_show_warn=False,
+    )
     return client
 
 
@@ -105,11 +114,24 @@ def index_file(file, index_name):
             doc[key] = child.xpath(xpath_expr)
         #print(doc)
         if 'productId' not in doc or len(doc['productId']) == 0:
+            print(' Product Id not found ')
             continue
         #### Step 2.b: Create a valid OpenSearch Doc and bulk index 2000 docs at a time
-        the_doc = None
-        docs.append(the_doc)
 
+        doc['_index'] = index_name
+        doc['_id'] = ''.join(doc['productId'])
+        docs.append(doc)
+
+    print(len(docs))
+    for i in range(0,len(docs),2000):
+        if len(docs)-i > 2000:
+            print(str(i)+ ' start ' + str(i+1999))
+            bulk(client,docs[i:(i+1999)])
+        elif len(docs)-i < 2000:
+            print(str(i)+ ' start ' + str(len(docs)-1))
+            bulk(client,docs[i:(len(docs)-1)])
+        print(client.cat.count(index_name, params={"v": "true"}))
+    #print(docs)
     return docs_indexed
 
 @click.command()
@@ -117,8 +139,10 @@ def index_file(file, index_name):
 @click.option('--index_name', '-i', default="bbuy_products", help="The name of the index to write to")
 @click.option('--workers', '-w', default=8, help="The number of workers to use to process files")
 def main(source_dir: str, index_name: str, workers: int):
-
-    files = glob.glob(source_dir + "/*.xml")
+   # files = glob.glob(source_dir + "/*.xml")
+    files = glob.glob("/workspace/datasets/product_data/products/products_0001_2570_to_430420.xml")
+    print(files)
+    print(index_name)
     docs_indexed = 0
     start = perf_counter()
     with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as executor:
