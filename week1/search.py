@@ -94,7 +94,7 @@ def query():
     print("query obj: {}".format(query_obj))
 
     #### Step 4.b.ii
-    response = None   # TODO: Replace me with an appropriate call to OpenSearch
+    response = opensearch.search(body=query_obj, index="bbuy_products")
     # Postprocess results here if you so desire
 
     #print(response)
@@ -110,12 +110,57 @@ def create_query(user_query, filters, sort="_score", sortDir="desc"):
     print("Query: {} Filters: {} Sort: {}".format(user_query, filters, sort))
     query_obj = {
         'size': 10,
-        "query": {
-            "match_all": {} # Replace me with a query that both searches and filters
+          "query": {
+            "bool": {
+                "must": [
+                    {
+                    "query_string": {
+                        "fields": [
+                        "name","shortDescription","longDescription"
+                        ],
+                        "query": user_query,
+                        "phrase_slop": 5
+                    }
+                    }
+                ],
+                "filter": filters
+            }
         },
         "aggs": {
             #### Step 4.b.i: create the appropriate query and aggregations here
+            "department": {
+                "terms": {
+                    "field": "department.keyword",
+                }
+            },
+            "missing_images": {
+                "missing": {
+                    "field": "image.keyword"
+                }
+            },
+            "regularPrice": {
+                "range": {
+                    "field": "regularPrice",
+                    "ranges": [
+                        {"key": "$0 - $100", "to": 100},
+                        {"key": "$100 - $200", "from": 100, "to": 200},
+                        {"key": "$200 - $300", "from": 200, "to": 300},
+                        {"key": "$300 - up", "from": 300},
+                    ]
+                }
+            }
 
-        }
+        },
+        "highlight": {
+            "fields": {
+            "shortDescription": {},
+            "longDescription" :{}
+            }
+        },
+        "sort":[
+            {"regularPrice":sortDir},
+            {"name.keyword":sortDir},
+            sort
+         ]
     }
     return query_obj

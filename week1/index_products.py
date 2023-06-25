@@ -119,11 +119,18 @@ def index_file(file, index_name):
         #### Step 2.b: Create a valid OpenSearch Doc and bulk index 2000 docs at a time
 
         doc['_index'] = index_name
-        doc['_id'] = ''.join(doc['productId'])
-        docs.append(doc)
-        bulk(client,docs)
-        break
-
+        doc['_id'] = doc['productId'][0]
+        docs_indexed += 1
+        docs.append(doc)        
+        
+        if docs_indexed % 2000 == 0:
+            bulk(client, docs ,request_timeout=60)
+            logger.info(f'{docs_indexed} documents indexed')
+            docs = []
+    if len(docs) > 0:
+        bulk(client, docs ,request_timeout=60)
+        logger.info(f'{docs_indexed} documents indexed')
+    return docs_indexed
     # print(len(docs))
     # for i in range(0,len(docs),2000):
     #     if len(docs)-i > 2000:
@@ -134,7 +141,7 @@ def index_file(file, index_name):
     #         bulk(client,docs[i:(len(docs)-1)])
     #     print(client.cat.count(index_name, params={"v": "true"}))
     #print(docs)
-    return docs_indexed
+    # return docs_indexed
 
 @click.command()
 @click.option('--source_dir', '-s', help='XML files source directory')
@@ -142,9 +149,10 @@ def index_file(file, index_name):
 @click.option('--workers', '-w', default=8, help="The number of workers to use to process files")
 def main(source_dir: str, index_name: str, workers: int):
    # files = glob.glob(source_dir + "/*.xml")
-    files = glob.glob("/workspace/datasets/product_data/products/products_0001_2570_to_430420.xml")
-    print(files)
-    print(index_name)
+   # files = glob.glob("/workspace/datasets/product_data/products/products_0001_2570_to_430420.xml")
+   #command to run locally python week1/index_products.py --source_dir /workspace/datasets/product_data/products
+
+    files = glob.glob(source_dir + "/*.xml")
     docs_indexed = 0
     start = perf_counter()
     with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as executor:
