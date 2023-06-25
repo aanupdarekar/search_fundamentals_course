@@ -119,7 +119,7 @@ def index_file(file, index_name):
         #### Step 2.b: Create a valid OpenSearch Doc and bulk index 2000 docs at a time
 
         doc['_index'] = index_name
-        doc['_id'] = doc['productId'][0]
+        doc['_id'] = doc['sku'][0]
         docs_indexed += 1
         docs.append(doc)        
         

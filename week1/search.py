@@ -116,7 +116,7 @@ def create_query(user_query, filters, sort="_score", sortDir="desc"):
                     {
                     "query_string": {
                         "fields": [
-                        "name","shortDescription","longDescription"
+                        "name^100","shortDescription^50","longDescription^10"
                         ],
                         "query": user_query,
                         "phrase_slop": 5
@@ -153,14 +153,12 @@ def create_query(user_query, filters, sort="_score", sortDir="desc"):
         },
         "highlight": {
             "fields": {
-            "shortDescription": {},
-            "longDescription" :{}
+                "shortDescription": {},
+                "longDescription" :{}
             }
         },
         "sort":[
-            {"regularPrice":sortDir},
-            {"name.keyword":sortDir},
-            sort
+            {sort:sortDir}
          ]
     }
     return query_obj
