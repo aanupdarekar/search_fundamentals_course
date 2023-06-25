@@ -110,20 +110,49 @@ def create_query(user_query, filters, sort="_score", sortDir="desc"):
     print("Query: {} Filters: {} Sort: {}".format(user_query, filters, sort))
     query_obj = {
         'size': 10,
-          "query": {
-            "bool": {
-                "must": [
-                    {
-                    "query_string": {
-                        "fields": [
-                        "name^100","shortDescription^50","longDescription^10"
+        "query": {
+            "function_score":{
+                "query":{
+                    "bool": {
+                        "must": [
+                            {
+                            "query_string": {
+                                "fields": [
+                                "name^1000","shortDescription^50","longDescription^10","department"
+                                ],
+                                "query": user_query,
+                                "phrase_slop": 5
+                            }
+                            }
                         ],
-                        "query": user_query,
-                        "phrase_slop": 5
+                        "filter": filters
                     }
+                },
+                "boost_mode": "replace",
+                "score_mode": "avg",
+                "functions": [
+                    {
+                        "field_value_factor": {
+                            "field": "salesRankLongTerm",
+                            "modifier": "reciprocal",
+                            "missing": 100000000
+                        }
+                    },
+                    {
+                        "field_value_factor": {
+                            "field": "salesRankMediumTerm",
+                            "modifier": "reciprocal",
+                            "missing": 100000000
+                        }
+                    },
+                    {
+                        "field_value_factor": {
+                            "field": "salesRankShortTerm",
+                            "modifier": "reciprocal",
+                            "missing": 100000000
+                        }
                     }
-                ],
-                "filter": filters
+                ]
             }
         },
         "aggs": {
@@ -145,7 +174,8 @@ def create_query(user_query, filters, sort="_score", sortDir="desc"):
                         {"key": "$0 - $100", "to": 100},
                         {"key": "$100 - $200", "from": 100, "to": 200},
                         {"key": "$200 - $300", "from": 200, "to": 300},
-                        {"key": "$300 - up", "from": 300},
+                        {"key": "$300 - $400", "from": 300, "to": 400},
+                        {"key": "$400 - up", "from": 300}
                     ]
                 }
             }
