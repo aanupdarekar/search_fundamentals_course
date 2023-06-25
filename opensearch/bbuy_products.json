@@ -159,6 +159,7 @@
         },
         "description": {
           "type": "text",
+          "analyzer": "english",
           "fields": {
             "keyword": {
               "type": "keyword",
@@ -277,6 +278,7 @@
         },
         "name": {
           "type": "text",
+          "analyzer": "english",
           "fields": {
             "keyword": {
               "type": "keyword",

@@ -35,22 +35,28 @@ def get_opensearch():
 @click.option('--index_name', '-i', default="bbuy_queries", help="The name of the index to write to")
 def main(source_file: str, index_name: str):
     client = get_opensearch()
-    ds = pd.read_csv(source_file)
-    #print(ds.columns)
-    ds['click_time'] = pd.to_datetime(ds['click_time'])
-    ds['query_time'] = pd.to_datetime(ds['query_time'])
-    #print(ds.dtypes)
+    ds = pd.read_csv(source_file , na_filter= False)
+    print(ds.columns)
+    ds['click_time'] = pd.to_datetime(ds['click_time'],format='mixed')
+    ds['query_time'] = pd.to_datetime(ds['query_time'],format='mixed')
+    print(ds.dtypes)
     docs = []
     tic = time.perf_counter()
     for idx, row in ds.iterrows():
         doc = {}
         for col in ds.columns:
-            doc[col] = row[col]
+            if col == 'category' and (row[col] is None or row[col] == 'None') :
+                doc[col] = ""
+            else :
+                doc[col] = row[col]
+
+            
         docs.append({'_index': index_name , '_source': doc})
         if idx % 1000 == 0:
             bulk(client, docs, request_timeout=60)
             logger.info(f'{idx} documents indexed')
             docs = []
+        #break
     if len(docs) > 0:
         bulk(client, docs, request_timeout=60)
     toc = time.perf_counter()
