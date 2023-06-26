@@ -140,13 +140,8 @@
           }
         },
         "departmentId": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
+          "type": "integer"
+    
         },
         "depth": {
           "type": "text",
@@ -222,22 +217,10 @@
           }
         },
         "inStoreAvailability": {
-          "type": "boolean",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
+          "type": "boolean"
         },
         "inStorePickup": {
-          "type": "boolean",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
+          "type": "boolean"
         },
         "longDescription": {
           "type": "text",
@@ -250,13 +233,7 @@
           "analyzer": "english"
         },
         "longDescriptionHtml": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
+          "type": "keyword"
         },
         "manufacturer": {
           "type": "text",
@@ -314,13 +291,7 @@
           }
         },
         "quantityLimit": {
-          "type": "long",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
+          "type": "long"
         },
         "regularPrice": {
           "type": "float",
